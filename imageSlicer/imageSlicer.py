@@ -3,6 +3,10 @@ import getopt
 import cv2 as cv
 import numpy as np
 import re
+import six
+import sys
+sys.modules['sklearn.externals.six'] = six
+import mlrose
 from collections import deque
 
 def main():
@@ -40,10 +44,10 @@ def main():
 
                 image = createBorder(image)
                 
-                #main_island_counter = countIslands(image, 0)
-                
-                #if main_island_counter > 1:
-                    #image = connectIslands(image)
+                main_island_counter, islands_coordinates = countIslands(image, 0)
+                if main_island_counter > 1:
+                    image_wbridges = connectIslands(image, islands_coordinates)
+
                 alpha = 1 / n_layers
                 beta = (1.0 - alpha)
                 blended_image = cv.addWeighted(cv.bitwise_not(image), alpha, blended_image, beta, 0.0)
@@ -88,6 +92,9 @@ def BFS(mat, vis, si, sj):
     q = deque()
     q.append([si, sj])
     vis[si][sj] = True
+
+    x = sj
+    y = si
  
     while (len(q) > 0):
         temp = q.popleft()
@@ -98,22 +105,33 @@ def BFS(mat, vis, si, sj):
         for k in range(8):
             if (isSafe(mat, i + row[k], j + col[k], vis)):
                 vis[i + row[k]][j + col[k]] = True
+                x = j + col[k]
+                y = i + row[k]
                 q.append([i + row[k], j + col[k]])
+    return (x, y)
  
 def countIslands(mat, val):
-    vis = [[False for i in range(len(mat))] for i in range(len(mat[0]))]
+    islands_coordinates = []
+    vis = [[False for i in range(len(mat[0]))] for i in range(len(mat))]
     res = 0
  
     for i in range(len(mat)):
         for j in range(len(mat[0])):
             if (mat[i][j] and not vis[i][j]):
-                BFS(mat, vis, i, j)
+                x, y = BFS(mat, vis, i, j)
+                islands_coordinates.append((x, y))
                 res += 1
-    return res
+    return res, islands_coordinates
 
 
-def connectIslands(image):
-    return
+def connectIslands(image, islands_coords):
+    fitness_coords = mlrose.TravellingSales(coords = islands_coords)
+    problem_fit = mlrose.TSPOpt(length = len(islands_coords), fitness_fn = fitness_coords, maximize=False)
+    best_state, best_fitness = mlrose.genetic_alg(problem_fit, random_state = 2)
+    print('The best state found is: ', best_state)
+
+    image_copy = image
+    return image_copy
 
 if __name__ == "__main__":
     main()

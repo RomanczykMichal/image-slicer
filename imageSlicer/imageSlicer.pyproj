@@ -12,7 +12,7 @@
     <Name>imageSlicer</Name>
     <RootNamespace>imageSlicer</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-f D:\Programowanie\Git_projects\image-slicer\image\1.jpg -n 16</CommandLineArguments>
+    <CommandLineArguments>-f D:\Programowanie\Git_projects\image-slicer\image\2.jpg -n 4</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

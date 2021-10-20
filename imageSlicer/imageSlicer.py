@@ -7,7 +7,9 @@ import six
 import sys
 sys.modules['sklearn.externals.six'] = six
 import mlrose
+import imutils
 from collections import deque
+from skimage.metrics import structural_similarity as compare_ssim
 
 def main():
     argv = sys.argv[1:]
@@ -18,14 +20,15 @@ def main():
     smoothBoundry = 200
 
     try:
-        opts, args = getopt.getopt(argv, 'f:n:', ['filePath', 'nLayers'])
+        opts, args = getopt.getopt(argv, 'f:n:b:', ['filePath', 'nLayers', 'bridges'])
 
         if len(opts) == 0 and len(opts) > 2:
-            print('usage: add.py -f <file_path> -n <number_of_layers>')
+            print('usage: add.py -f <file_path> -n <number_of_layers> -b <bridges>')
         
         else:
-            n_layers = int(opts.pop()[1])
-            file_path = opts.pop()[1]
+            file_path = opts[0][1]
+            n_layers = int(opts[1][1])
+            do_bridges = int(opts[2][1])
             regexed = re.search('(.*)\\\\.*\.jpg', file_path)
             if regexed:
                 save_path = regexed.group(1)
@@ -44,15 +47,25 @@ def main():
 
                 image = createBorder(image)
                 
-                main_island_counter, islands_coordinates = countIslands(image, 0)
-                if main_island_counter > 1:
-                    image_wbridges = connectIslands(image, islands_coordinates)
+                if do_bridges == 1:
+                    main_island_counter, islands_coordinates = countIslands(image, 0)
+                
+                    if main_island_counter > 1:
+                        image_wbridges, image_bridges = connectIslands(image, islands_coordinates)
+                        cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image_wbridges)
+                        cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + 'bridge.jpg', image_bridges)
+                        print('layer' + str(i + 1) + ' with bridge picture saved!')
+                    else: 
+                        cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
+                        print('layer' + str(i + 1) + ' saved!')
+                else:
+                    cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
+                    print('layer' + str(i + 1) + ' saved!')
 
                 alpha = 1 / n_layers
                 beta = (1.0 - alpha)
                 blended_image = cv.addWeighted(cv.bitwise_not(image), alpha, blended_image, beta, 0.0)
-                cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
-                print('layer' + str(i + 1) + ' saved!')
+                
 
             cv.imwrite(save_path + '\\layers\\blended.jpg', blended_image)
     except getopt.GetoptError:
@@ -61,6 +74,8 @@ def main():
 
 def smoothUp(image):
     blurred = cv.pyrUp(image)
+    blurred = cv.medianBlur(blurred, 7)
+    blurred = cv.medianBlur(blurred, 7)
     blurred = cv.medianBlur(blurred, 7)
     blurred = cv.pyrDown(blurred)
     _, smooth = cv.threshold(blurred,200, 255, cv.THRESH_BINARY_INV)
@@ -128,10 +143,18 @@ def connectIslands(image, islands_coords):
     fitness_coords = mlrose.TravellingSales(coords = islands_coords)
     problem_fit = mlrose.TSPOpt(length = len(islands_coords), fitness_fn = fitness_coords, maximize=False)
     best_state, best_fitness = mlrose.genetic_alg(problem_fit, random_state = 2)
-    print('The best state found is: ', best_state)
 
-    image_copy = image
-    return image_copy
+    line_thickness = 2
+    image_wbridges = image.copy()
+    for i in range(1, len(best_state)):
+        p1 = islands_coords[best_state[i-1]]
+        p2 = islands_coords[best_state[i]]
+        cv.line(image_wbridges, p1, p2, 255,thickness = line_thickness)
+
+    diff = cv.absdiff(image, image_wbridges)
+    diff = cv.bitwise_not(diff)
+
+    return image_wbridges, diff
 
 if __name__ == "__main__":
     main()

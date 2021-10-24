@@ -60,18 +60,18 @@ def main():
                         print('layer' + str(i + 1) + ' with bridge picture saved!')
                                         
                         if (do_stl == 1):
-                            createStf(image_wbridges,save_path +  'layer'+str(i + 1)+'Stl')
-                            createStf(image_bridges,save_path +  'layer'+str(i + 1)+'BrigdeStl')
+                            createStf(image_wbridges,save_path +  '\\stls\\layer'+str(i + 1)+'Stl.stl')
+                            createStf(image_bridges,save_path +  '\\stls\\layer'+str(i + 1)+'BrigdeStl.stl')
 
                     else: 
                         cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
                         print('layer' + str(i + 1) + ' saved!')
 
                         if (do_stl == 1):
-                            createStf(image,save_path +  'layer'+str(i + 1)+'Stl')
+                            createStf(image,save_path +  '\\stls\\layer'+str(i + 1)+'Stl.stl')
                 else:
                     if (do_stl == 1):
-                        createStf(image,save_path +  'layer'+str(i + 1)+'Stl')
+                        createStf(image,save_path +  '\\stls\\layer'+str(i + 1)+'Stl.stl')
 
                     cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
                     print('layer' + str(i + 1) + ' saved!')

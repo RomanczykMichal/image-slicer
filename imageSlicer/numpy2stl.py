@@ -60,10 +60,10 @@ def roll2d(image, shifts):
     return np.roll(np.roll(image, shifts[0], axis=0), shifts[1], axis=1)
 
 
-def numpy2stl(A, fn, scale=0.1, mask_val=None, ascii=False,
-              max_width=200.,
-              max_depth=200.,
-              max_height=10.,
+def numpy2stl(A, fn, scale=0.01, mask_val=0.5, ascii=False,
+              max_width=180.,
+              max_depth=180.,
+              max_height=140.,
               solid=True,
               rotate=True,
               min_thickness_percent=0.1,
@@ -153,6 +153,10 @@ def numpy2stl(A, fn, scale=0.1, mask_val=None, ascii=False,
                 mask[i + 1, k + 1] = 1
                 mask[i + 1, k] = 1
         facets = np.array(facets)
+
+        if len(facets) < 1:
+            print("No need to create stl file...")
+            return None
 
         if solid:
             print("Computed edges...")

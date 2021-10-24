@@ -13,6 +13,12 @@ from collections import deque
 from skimage.metrics import structural_similarity as compare_ssim
 from stl import mesh
 
+'''
+    todo:
+    - naprawic laczenie mostow
+    - ogarnac czemu stl rysuje tylko gorna warstwe
+'''
+
 def main():
     argv = sys.argv[1:]
     file_path = ""
@@ -60,25 +66,27 @@ def main():
                         print('layer' + str(i + 1) + ' with bridge picture saved!')
                                         
                         if (do_stl == 1):
-                            createStf(image_wbridges,save_path +  '\\stls\\layer'+str(i + 1)+'Stl.stl')
-                            createStf(image_bridges,save_path +  '\\stls\\layer'+str(i + 1)+'BrigdeStl.stl')
+                            createStf(image_wbridges, save_path + '\\stls\\layer'+str(i + 1)+'Stl.stl')
+                            createStf(image_bridges, save_path + '\\stls\\layer'+str(i + 1)+'BrigdeStl.stl')
 
                     else: 
                         cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
                         print('layer' + str(i + 1) + ' saved!')
 
                         if (do_stl == 1):
-                            createStf(image,save_path +  '\\stls\\layer'+str(i + 1)+'Stl.stl')
+                            createStf(image, save_path + '\\stls\\layer'+str(i + 1)+'Stl.stl')
                 else:
-                    if (do_stl == 1):
-                        createStf(image,save_path +  '\\stls\\layer'+str(i + 1)+'Stl.stl')
-
                     cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
                     print('layer' + str(i + 1) + ' saved!')
+
+                    if (do_stl == 1):
+                        createStf(image, save_path + '\\stls\\layer'+str(i + 1)+'Stl.stl')
+
 
                 alpha = 1 / n_layers
                 beta = (1.0 - alpha)
                 blended_image = cv.addWeighted(cv.bitwise_not(image), alpha, blended_image, beta, 0.0)
+                print()
 
             cv.imwrite(save_path + '\\layers\\blended.jpg', blended_image)
     except getopt.GetoptError:

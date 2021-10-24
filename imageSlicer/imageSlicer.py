@@ -8,8 +8,10 @@ import sys
 sys.modules['sklearn.externals.six'] = six
 import mlrose
 import imutils
+import numpy2stl as n2s
 from collections import deque
 from skimage.metrics import structural_similarity as compare_ssim
+from stl import mesh
 
 def main():
     argv = sys.argv[1:]
@@ -20,15 +22,16 @@ def main():
     smoothBoundry = 200
 
     try:
-        opts, args = getopt.getopt(argv, 'f:n:b:', ['filePath', 'nLayers', 'bridges'])
+        opts, args = getopt.getopt(argv, 'f:n:b:s:', ['filePath', 'nLayers', 'bridges', 'stls'])
 
         if len(opts) == 0 and len(opts) > 2:
-            print('usage: add.py -f <file_path> -n <number_of_layers> -b <bridges>')
+            print('usage: add.py -f <file_path> -n <number_of_layers> -b <bridges 1-yes, 0-no> -s <generate stl 1-yes, 0-no>')
         
         else:
             file_path = opts[0][1]
             n_layers = int(opts[1][1])
             do_bridges = int(opts[2][1])
+            do_stl = int(opts[3][1])
             regexed = re.search('(.*)\\\\.*\.jpg', file_path)
             if regexed:
                 save_path = regexed.group(1)
@@ -55,26 +58,35 @@ def main():
                         cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image_wbridges)
                         cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + 'bridge.jpg', image_bridges)
                         print('layer' + str(i + 1) + ' with bridge picture saved!')
+                                        
+                        if (do_stl == 1):
+                            createStf(image_wbridges,save_path +  'layer'+str(i + 1)+'Stl')
+                            createStf(image_bridges,save_path +  'layer'+str(i + 1)+'BrigdeStl')
+
                     else: 
                         cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
                         print('layer' + str(i + 1) + ' saved!')
+
+                        if (do_stl == 1):
+                            createStf(image,save_path +  'layer'+str(i + 1)+'Stl')
                 else:
+                    if (do_stl == 1):
+                        createStf(image,save_path +  'layer'+str(i + 1)+'Stl')
+
                     cv.imwrite(save_path + '\\layers\\layer' + str(i + 1) + '.jpg', image)
                     print('layer' + str(i + 1) + ' saved!')
 
                 alpha = 1 / n_layers
                 beta = (1.0 - alpha)
                 blended_image = cv.addWeighted(cv.bitwise_not(image), alpha, blended_image, beta, 0.0)
-                
 
             cv.imwrite(save_path + '\\layers\\blended.jpg', blended_image)
     except getopt.GetoptError:
-        print ('usage: add.py -f <file_path> -n <number_of_layers>')
+        print ('getopt.GetoptError')
         sys.exit(2)
 
 def smoothUp(image):
     blurred = cv.pyrUp(image)
-    blurred = cv.medianBlur(blurred, 7)
     blurred = cv.medianBlur(blurred, 7)
     blurred = cv.medianBlur(blurred, 7)
     blurred = cv.pyrDown(blurred)
@@ -155,6 +167,9 @@ def connectIslands(image, islands_coords):
     diff = cv.bitwise_not(diff)
 
     return image_wbridges, diff
+
+def createStf(file_to_save, file_name):
+    n2s.numpy2stl(file_to_save, file_name)
 
 if __name__ == "__main__":
     main()
